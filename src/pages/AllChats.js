@@ -104,9 +104,17 @@ const AllChats = () => {
           <h1>💬 All Conversations</h1>
           <p className="subtitle">View and manage all chatbot conversations</p>
         </div>
-        <button className="refresh-btn" onClick={fetchConversations}>
-          🔄 Refresh
-        </button>
+        <div className="header-actions">
+          <button 
+            className="system-prompt-btn" 
+            onClick={() => window.location.href = '/system-prompt'}
+          >
+            ⚙️ System Prompt
+          </button>
+          <button className="refresh-btn" onClick={fetchConversations}>
+            🔄 Refresh
+          </button>
+        </div>
       </div>
 
       {/* Filters and Search */}

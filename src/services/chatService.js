@@ -1,32 +1,20 @@
-import { db, isFirebaseConfigured } from '../config/firebase';
-import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  query, 
-  orderBy, 
-  limit,
-  serverTimestamp,
-  where 
-} from 'firebase/firestore';
-
-const CHATS_COLLECTION = 'chats';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 export const saveMessage = async (sessionId, message, isUser) => {
   try {
-    // Check if Firebase is properly configured
-    if (!isFirebaseConfigured() || !db) {
-      console.warn('Firebase not configured - message not saved');
-      return { success: false, error: 'Firebase not configured' };
-    }
-    
-    const docRef = await addDoc(collection(db, CHATS_COLLECTION), {
-      sessionId,
-      text: message,
-      isUser,
-      timestamp: serverTimestamp()
+    const response = await fetch(`${API_URL}/conversations/${sessionId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: message,
+        isUser
+      })
     });
-    return { success: true, id: docRef.id };
+
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error('Error saving message:', error);
     return { success: false, error: error.message };
@@ -35,31 +23,29 @@ export const saveMessage = async (sessionId, message, isUser) => {
 
 export const getChatHistory = async (sessionId, maxMessages = 50) => {
   try {
-    // Check if Firebase is properly configured
-    if (!isFirebaseConfigured() || !db) {
-      console.warn('Firebase not configured - returning empty history');
+    const response = await fetch(`${API_URL}/conversations/${sessionId}`);
+    
+    if (response.status === 404) {
+      // Conversation doesn't exist yet
       return { success: true, messages: [] };
     }
-    
-    const q = query(
-      collection(db, CHATS_COLLECTION),
-      where('sessionId', '==', sessionId),
-      orderBy('timestamp', 'desc'),
-      limit(maxMessages)
-    );
 
-    const querySnapshot = await getDocs(q);
-    const messages = [];
+    const data = await response.json();
     
-    querySnapshot.forEach((doc) => {
-      messages.push({
-        id: doc.id,
-        ...doc.data()
-      });
-    });
+    if (data.success && data.data) {
+      // Return messages in chronological order
+      const messages = data.data.messages || [];
+      return { 
+        success: true, 
+        messages: messages.slice(-maxMessages).map(msg => ({
+          text: msg.text,
+          isUser: msg.isUser,
+          timestamp: msg.timestamp
+        }))
+      };
+    }
 
-    // Reverse to get chronological order
-    return { success: true, messages: messages.reverse() };
+    return { success: true, messages: [] };
   } catch (error) {
     console.error('Error getting chat history:', error);
     return { success: true, messages: [] };

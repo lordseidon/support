@@ -24,13 +24,39 @@ const getDemoResponse = (userMessage) => {
   return `Thanks for your message: "${userMessage}"\n\n🤖 I'm running in **demo mode** right now. I can provide basic responses, but for intelligent AI-powered conversations, please configure your Gemini API key.\n\nType "help" to see what I can do, or "setup" to learn how to enable full functionality!`;
 };
 
+// Cookie utility functions
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+};
+
+const setCookie = (name, value, days = 365) => {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${value}; expires=${expires}; path=/`;
+};
+
 const ChatBot = ({ isWidget = false }) => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState('');
+  const [sessionId, setSessionId] = useState(() => {
+    // Try to get existing session from cookie
+    const existingSession = getCookie('chatbot_session_id');
+    if (existingSession) {
+      console.log('📌 Found existing session in cookie:', existingSession);
+      return existingSession;
+    }
+    // Generate new session ID
+    const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    setCookie('chatbot_session_id', newSessionId);
+    console.log('🆕 Created new session:', newSessionId);
+    return newSessionId;
+  });
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [hasGreeted, setHasGreeted] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const greetingSentRef = useRef(false);
@@ -74,7 +100,7 @@ const ChatBot = ({ isWidget = false }) => {
       setMessages(prev => [...prev, aiMessage]);
       
       const result = await streamResponse(
-        '[SYSTEM: I just sent more smile transformation images. Please provide a brief, engaging comment about these examples. Focus on understanding their needs rather than pushing for appointments unless they have already shared their issue and you have exchanged several messages.]',
+        '[SYSTEM: SPEAK ONLY ITALIAN TO THE USER AND BE CONCISE ALWAYS. I just sent more smile transformation images. Please provide a brief, engaging comment about these examples. Focus on understanding their needs rather than pushing for appointments unless they have already shared their issue and you have exchanged several messages.]. SPEAK ONLY ITALIAN TO THE USER AND BE CONCISE ALWAYS.',
         [],
         (chunkText, fullText) => {
           setMessages(prev =>
@@ -84,7 +110,8 @@ const ChatBot = ({ isWidget = false }) => {
                 : msg
             )
           );
-        }
+        },
+        sessionId
       );
       
       if (result.success) {
@@ -99,91 +126,61 @@ const ChatBot = ({ isWidget = false }) => {
     }, 400);
   };
 
+  // Load conversation history on mount
+  useEffect(() => {
+    const loadConversationHistory = async () => {
+      const existingSession = getCookie('chatbot_session_id');
+      if (!existingSession) {
+        console.log('ℹ️ No existing session found');
+        return;
+      }
+
+      setIsLoadingHistory(true);
+      try {
+        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/conversations/${existingSession}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data.messages && data.data.messages.length > 0) {
+            console.log('✅ Loaded conversation history:', data.data.messages.length, 'messages');
+            
+            // Convert backend messages to frontend format, filtering out SYSTEM messages
+            const loadedMessages = data.data.messages
+              .filter(msg => !msg.text.startsWith('[SYSTEM:'))
+              .map((msg, index) => ({
+                id: Date.now() + index,
+                text: msg.text,
+                isUser: msg.isUser,
+                timestamp: new Date(msg.timestamp),
+                isStreaming: false
+              }));
+            
+            setMessages(loadedMessages);
+            setHasGreeted(true);
+            greetingSentRef.current = true;
+          } else {
+            console.log('ℹ️ No previous messages in conversation');
+          }
+        } else {
+          console.log('ℹ️ Conversation not found, will start fresh');
+        }
+      } catch (error) {
+        console.error('❌ Error loading conversation history:', error);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    loadConversationHistory();
+  }, []);
+
   useEffect(() => {
     // Auto-focus input on mount
     if (inputRef.current) {
       inputRef.current.focus();
     }
-
-    // Show initial greeting with testimonials
-    if (!hasGreeted && !greetingSentRef.current) {
-      greetingSentRef.current = true;
-      
-      const greetingMessage = {
-        id: Date.now(),
-        text: `Hello! 👋 I'm **Adam**, your personal assistant for **Adamanti Smile Studios**. We specialize in transforming smiles with premium care across Tuscany.
-
-Here's what we offer:
-
-**Dental Implants** - Complete smile restoration with advanced techniques
-
-**Ceramic Veneers** - Perfect aesthetic transformations
-
-**Full Arch Reconstruction** - Complete smile makeovers in zirconia
-
-**Smile Design** - Personalized aesthetic improvements
-
-All backed by our **5-year total guarantee!**
-
-What would you like to know more about? Or would you like to find a clinic near you?`,
-        isUser: false,
-        timestamp: new Date()
-      };
-
-      setMessages([greetingMessage]);
-      setHasGreeted(true);
-      
-      // Send testimonial images first
-      setTimeout(() => {
-        const testimonials = getRandomTestimonials(3);
-        const imageMessage = {
-          id: Date.now(),
-          text: '',
-          isUser: false,
-          timestamp: new Date(),
-          images: testimonials
-        };
-        setMessages(prev => [...prev, imageMessage]);
-        
-        // Get AI to explain the images
-        setTimeout(async () => {
-          const aiMessageId = Date.now() + 1;
-          const aiMessage = {
-            id: aiMessageId,
-            text: '',
-            isUser: false,
-            timestamp: new Date(),
-            isStreaming: true
-          };
-          setMessages(prev => [...prev, aiMessage]);
-          
-          const result = await streamResponse(
-            '[SYSTEM: I just sent 3 smile transformation images. Please provide a brief, warm explanation about these testimonials. This is the FIRST interaction - do NOT ask for appointments or contact info. Instead, ask an open-ended question to understand what brings them here or what they would like to improve about their smile.]',
-            [],
-            (chunkText, fullText) => {
-              setMessages(prev =>
-                prev.map(msg =>
-                  msg.id === aiMessageId
-                    ? { ...msg, text: fullText, isStreaming: true }
-                    : msg
-                )
-              );
-            }
-          );
-          
-          if (result.success) {
-            setMessages(prev =>
-              prev.map(msg =>
-                msg.id === aiMessageId
-                  ? { ...msg, text: result.text, isStreaming: false }
-                  : msg
-              )
-            );
-          }
-        }, 400);
-      }, 500);
-    }
-  }, [hasGreeted]);
+  }, []);
 
   useEffect(() => {
     // Auto-focus input after sending message
@@ -253,7 +250,8 @@ What would you like to know more about? Or would you like to find a clinic near 
                 : msg
             )
           );
-        }
+        },
+        sessionId
       );
       
       console.log('📥 Stream completed:', result);
@@ -330,45 +328,41 @@ What would you like to know more about? Or would you like to find a clinic near 
 
       <div className="messages-container">
         <div className="messages-wrapper">
-        {messages.length === 0 && false ? (
+        {isLoadingHistory ? (
           <div className="empty-state">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="empty-state-icon">💬</div>
+              <div className="empty-state-icon">⏳</div>
             </motion.div>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              Welcome to AI Assistant
+              Loading your conversation...
             </motion.h2>
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="empty-state">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1rem', color: '#2c3e50' }}
+            >
+              ✨ Ready to Transform Your Smile? ✨
+            </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
+              style={{ fontSize: '1.2rem', color: '#7f8c8d' }}
             >
-              Ask me anything! I'm here to help you with information, answer questions, and provide support.
+              Tell me what you'd like to improve and I'll help you discover your perfect smile! 😊
             </motion.p>
-            <motion.div
-              className="suggestions"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              {suggestions.map((suggestion, index) => (
-                <button
-                  key={index}
-                  className="suggestion-chip"
-                  onClick={() => handleSuggestionClick(suggestion)}
-                >
-                  {suggestion}
-                </button>
-              ))}
-            </motion.div>
           </div>
         ) : (
           <AnimatePresence>
@@ -379,55 +373,30 @@ What would you like to know more about? Or would you like to find a clinic near 
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className={`message ${message.isUser ? 'user' : 'assistant'} ${message.images ? 'message-images-only' : ''}`}
+                className={`message ${message.isUser ? 'user' : 'assistant'}`}
               >
-                {message.images && message.images.length > 0 ? (
-                  <div className="message-images-standalone">
-                    <div className="message-images-grid">
-                      {message.images.map((num, index) => (
-                        <motion.div
-                          key={`${num}-${index}`}
-                          className="message-image-card"
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
-                          <img
-                            src={require(`../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_${num}.jpg`)}
-                            alt={`Smile transformation ${num}`}
-                            className="message-image"
-                            loading="lazy"
-                          />
-                        </motion.div>
-                      ))}
+                <div className="message-avatar">
+                  {message.isUser ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="18" height="18">
+                      <path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/>
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" width="18" height="18">
+                      <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM164.1 325.5C182 346.2 212.6 368 256 368s74-21.8 91.9-42.5c5.8-6.7 15.9-7.4 22.6-1.6s7.4 15.9 1.6 22.6C349.8 372.1 311.1 400 256 400s-93.8-27.9-116.1-53.5c-5.8-6.7-5.1-16.8 1.6-22.6s16.8-5.1 22.6 1.6zM144.4 208a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm192-32a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
+                    </svg>
+                  )}
+                </div>
+                <div className="message-content">
+                  {message.isStreaming && message.text === '' ? (
+                    <div className="typing-indicator">
+                      <div className="typing-dot"></div>
+                      <div className="typing-dot"></div>
+                      <div className="typing-dot"></div>
                     </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="message-avatar">
-                      {message.isUser ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="18" height="18">
-                          <path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/>
-                        </svg>
-                      ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" width="18" height="18">
-                          <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM164.1 325.5C182 346.2 212.6 368 256 368s74-21.8 91.9-42.5c5.8-6.7 15.9-7.4 22.6-1.6s7.4 15.9 1.6 22.6C349.8 372.1 311.1 400 256 400s-93.8-27.9-116.1-53.5c-5.8-6.7-5.1-16.8 1.6-22.6s16.8-5.1 22.6 1.6zM144.4 208a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm192-32a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
-                        </svg>
-                      )}
-                    </div>
-                    <div className="message-content">
-                      {message.isStreaming && message.text === '' ? (
-                        <div className="typing-indicator">
-                          <div className="typing-dot"></div>
-                          <div className="typing-dot"></div>
-                          <div className="typing-dot"></div>
-                        </div>
-                      ) : (
-                        <ReactMarkdown>{message.text}</ReactMarkdown>
-                      )}
-                    </div>
-                  </>
-                )}
+                  ) : (
+                    <ReactMarkdown>{message.text}</ReactMarkdown>
+                  )}
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>

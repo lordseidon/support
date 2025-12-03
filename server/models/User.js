@@ -12,6 +12,26 @@ const userSchema = new mongoose.Schema({
     sparse: true,
     index: true
   },
+  phoneMessage: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  address: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  addressMessage: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  nameMessage: {
+    type: String,
+    trim: true,
+    default: null
+  },
   email: {
     type: String,
     trim: true,

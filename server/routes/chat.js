@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const Conversation = require('../models/Conversation');
 const User = require('../models/User');
+const telegramService = require('../services/telegramService');
 
 // Read system prompt from markdown file
 const SYSTEM_PROMPT_PATH = path.join(__dirname, '..', 'system_prompt.md');
@@ -113,7 +114,7 @@ router.post('/message', async (req, res) => {
 
       // If user details were extracted, save them
       if (extractedDetails) {
-        const { name, phone, issue } = extractedDetails;
+        const { name, phone, address, issue, originalMessage } = extractedDetails;
         
         // Try to find existing user by phone or create new one
         if (phone) {
@@ -124,11 +125,25 @@ router.post('/message', async (req, res) => {
           savedUser = new User({
             name,
             phone,
+            address,
+            phoneMessage: phone ? originalMessage : null,
+            nameMessage: name ? originalMessage : null,
+            addressMessage: address ? originalMessage : null,
             conversationIds: [conversation._id]
           });
         } else {
           // Update existing user
-          if (name && !savedUser.name) savedUser.name = name;
+          if (name && !savedUser.name) {
+            savedUser.name = name;
+            savedUser.nameMessage = originalMessage;
+          }
+          if (phone && !savedUser.phoneMessage) {
+            savedUser.phoneMessage = originalMessage;
+          }
+          if (address && !savedUser.address) {
+            savedUser.address = address;
+            savedUser.addressMessage = originalMessage;
+          }
           if (!savedUser.conversationIds.includes(conversation._id)) {
             savedUser.conversationIds.push(conversation._id);
           }
@@ -151,8 +166,20 @@ router.post('/message', async (req, res) => {
         console.log(`User ID: ${savedUser._id}`);
         console.log(`Name: ${savedUser.name || 'Not provided'}`);
         console.log(`Phone: ${savedUser.phone || 'Not provided'}`);
+        console.log(`Address: ${savedUser.address || 'Not provided'}`);
         console.log(`Latest Issue: ${issue || 'Not provided'}`);
         console.log('═══════════════════════════════════════════\n');
+
+        // Send Telegram notification if phone number was provided
+        if (phone) {
+          telegramService.sendPhoneNumberNotification({
+            name,
+            phone,
+            address,
+            originalMessage,
+            timestamp: new Date().toLocaleString()
+          });
+        }
       }
     }
 
@@ -262,7 +289,7 @@ router.post('/stream', async (req, res) => {
       // Extract and save user details
       const extractedDetails = extractUserDetails(message, fullText);
       if (extractedDetails) {
-        const { name, phone, issue } = extractedDetails;
+        const { name, phone, address, issue, originalMessage } = extractedDetails;
         
         let savedUser = phone ? await User.findOne({ phone }) : null;
 
@@ -270,10 +297,24 @@ router.post('/stream', async (req, res) => {
           savedUser = new User({
             name,
             phone,
+            address,
+            phoneMessage: phone ? originalMessage : null,
+            nameMessage: name ? originalMessage : null,
+            addressMessage: address ? originalMessage : null,
             conversationIds: [conversation._id]
           });
         } else {
-          if (name && !savedUser.name) savedUser.name = name;
+          if (name && !savedUser.name) {
+            savedUser.name = name;
+            savedUser.nameMessage = originalMessage;
+          }
+          if (phone && !savedUser.phoneMessage) {
+            savedUser.phoneMessage = originalMessage;
+          }
+          if (address && !savedUser.address) {
+            savedUser.address = address;
+            savedUser.addressMessage = originalMessage;
+          }
           if (!savedUser.conversationIds.includes(conversation._id)) {
             savedUser.conversationIds.push(conversation._id);
           }
@@ -284,6 +325,17 @@ router.post('/stream', async (req, res) => {
 
         conversation.userId = savedUser._id;
         await conversation.save();
+
+        // Send Telegram notification if phone number was provided
+        if (phone) {
+          telegramService.sendPhoneNumberNotification({
+            name,
+            phone,
+            address,
+            originalMessage,
+            timestamp: new Date().toLocaleString()
+          });
+        }
       }
     }
 
@@ -327,7 +379,9 @@ function extractUserDetails(userMessage, aiResponse) {
   const details = {
     name: null,
     phone: null,
-    issue: null
+    address: null,
+    issue: null,
+    originalMessage: userMessage
   };
 
   // Extract name - Italian patterns
@@ -365,6 +419,28 @@ function extractUserDetails(userMessage, aiResponse) {
     }
   }
 
+  // Extract address - Italian and English patterns
+  const addressPatterns = [
+    // Italian: "abito a", "vivo a", "indirizzo", "via", "corso", "piazza"
+    /(?:abito a|vivo a|vivo in|indirizzo[:\s]+|address[:\s]+)(.*?(?:via|corso|piazza|strada|viale)[^,.!?]*)/i,
+    /(?:via|corso|piazza|strada|viale)\s+[A-Za-z\s]+\d+/i,
+    // English: "I live at", "my address is"
+    /(?:i live at|my address is|address[:\s]+)([^,.!?]+)/i,
+    // Generic street address pattern
+    /\d+\s+[A-Za-z\s]+(?:street|st|avenue|ave|road|rd|drive|dr|lane|ln|way|court|ct)/i
+  ];
+
+  for (const pattern of addressPatterns) {
+    const match = userMessage.match(pattern);
+    if (match && match[1]) {
+      details.address = match[1].trim();
+      break;
+    } else if (match && match[0]) {
+      details.address = match[0].trim();
+      break;
+    }
+  }
+
   // Extract issue
   const issueKeywords = [
     'problem', 'issue', 'pain', 'hurt', 'need', 'want', 'help', 
@@ -379,7 +455,7 @@ function extractUserDetails(userMessage, aiResponse) {
     details.issue = userMessage.substring(0, 200).trim();
   }
 
-  const hasInfo = details.name || details.phone || details.issue;
+  const hasInfo = details.name || details.phone || details.address || details.issue;
   return hasInfo ? details : null;
 }
 

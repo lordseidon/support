@@ -41,6 +41,7 @@ app.use('/api/chat', require('./routes/chat'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/conversations', require('./routes/conversations'));
 app.use('/api/system-prompt', require('./routes/systemPrompt'));
+app.use('/api/userinfo', require('./routes/userInfo'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

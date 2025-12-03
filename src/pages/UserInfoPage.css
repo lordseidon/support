@@ -1,0 +1,424 @@
+/* User Info Page Styles - All classnames prefixed with 'uip-' to avoid conflicts */
+
+.uip-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+.uip-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 2rem 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.uip-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: white;
+}
+
+.uip-subtitle {
+  font-size: 1.1rem;
+  margin: 0;
+  opacity: 0.95;
+  color: white;
+}
+
+.uip-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.uip-search-box {
+  flex: 1;
+  min-width: 250px;
+}
+
+.uip-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e1e4e8;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: white;
+}
+
+.uip-search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.uip-filter-box {
+  min-width: 200px;
+}
+
+.uip-filter-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e1e4e8;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.uip-filter-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.uip-export-btn,
+.uip-refresh-btn,
+.uip-retry-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.uip-export-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.uip-export-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+}
+
+.uip-refresh-btn {
+  background-color: #28a745;
+  color: white;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.uip-refresh-btn:hover {
+  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+}
+
+.uip-retry-btn {
+  background-color: #667eea;
+  color: white;
+  margin-top: 1rem;
+}
+
+.uip-retry-btn:hover {
+  background-color: #5568d3;
+}
+
+.uip-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.uip-stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.uip-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.uip-stat-card h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.uip-stat-number {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.uip-loading,
+.uip-error,
+.uip-no-data {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.uip-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: uip-spin 1s linear infinite;
+  margin: 0 auto 1rem auto;
+}
+
+@keyframes uip-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.uip-error {
+  color: #dc3545;
+}
+
+.uip-error h2 {
+  margin-top: 0;
+  color: #dc3545;
+}
+
+.uip-no-data {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.uip-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 500px);
+}
+
+.uip-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.uip-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.uip-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.uip-table-row {
+  border-bottom: 1px solid #e1e4e8;
+  transition: background-color 0.2s ease;
+}
+
+.uip-table-row:hover {
+  background-color: #f8f9fa;
+}
+
+.uip-table-row:last-child {
+  border-bottom: none;
+}
+
+.uip-table td {
+  padding: 1rem;
+  vertical-align: top;
+}
+
+.uip-cell-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.uip-cell-phone {
+  color: #555;
+  font-family: 'Courier New', monospace;
+}
+
+.uip-cell-message {
+  color: #555;
+  max-width: 300px;
+  font-size: 0.9rem;
+}
+
+.uip-message-preview {
+  padding: 0.5rem;
+  background-color: #f8f9fa;
+  border-left: 3px solid #667eea;
+  border-radius: 4px;
+  font-style: italic;
+  cursor: help;
+}
+
+.uip-cell-address {
+  color: #555;
+  max-width: 250px;
+}
+
+.uip-cell-email {
+  color: #667eea;
+}
+
+.uip-cell-date {
+  color: #666;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.uip-cell-issues {
+  max-width: 300px;
+}
+
+.uip-na {
+  color: #999;
+  font-style: italic;
+}
+
+.uip-status-badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.uip-status-new {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.uip-status-contacted {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.uip-status-qualified {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.uip-status-appointment_scheduled {
+  background-color: #e1f5fe;
+  color: #0288d1;
+}
+
+.uip-status-converted {
+  background-color: #e8f5e9;
+  color: #388e3c;
+}
+
+.uip-status-inactive {
+  background-color: #fce4ec;
+  color: #c2185b;
+}
+
+.uip-issues-details {
+  cursor: pointer;
+}
+
+.uip-issues-details summary {
+  color: #667eea;
+  font-weight: 600;
+  user-select: none;
+}
+
+.uip-issues-details summary:hover {
+  text-decoration: underline;
+}
+
+.uip-issues-list {
+  margin: 0.5rem 0 0 0;
+  padding-left: 1.5rem;
+  text-align: left;
+  list-style-type: disc;
+}
+
+.uip-issues-list li {
+  margin: 0.5rem 0;
+  color: #555;
+  line-height: 1.5;
+}
+
+.uip-issues-list strong {
+  color: #667eea;
+  font-size: 0.85rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .uip-table-container {
+    overflow-x: auto;
+  }
+  
+  .uip-table {
+    min-width: 1000px;
+  }
+}
+
+@media (max-width: 768px) {
+  .uip-container {
+    padding: 1rem;
+  }
+
+  .uip-title {
+    font-size: 2rem;
+  }
+
+  .uip-controls {
+    flex-direction: column;
+  }
+
+  .uip-search-box,
+  .uip-filter-box {
+    width: 100%;
+  }
+
+  .uip-export-btn,
+  .uip-refresh-btn {
+    width: 100%;
+  }
+
+  .uip-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .uip-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .uip-stat-number {
+    font-size: 2rem;
+  }
+}

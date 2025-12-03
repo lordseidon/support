@@ -85,7 +85,7 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log('\n═══════════════════════════════════════════');
   console.log('🚀 ADAMANTI SUPPORT SERVER');
   console.log('═══════════════════════════════════════════');
@@ -93,6 +93,23 @@ app.listen(PORT, () => {
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Client URL: ${process.env.CLIENT_URL}`);
   console.log('═══════════════════════════════════════════\n');
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('⚠️ SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('✅ HTTP server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('\n⚠️ SIGINT signal received: closing HTTP server');
+  server.close(() => {
+    console.log('✅ HTTP server closed');
+    process.exit(0);
+  });
 });
 
 module.exports = app;

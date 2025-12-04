@@ -7,8 +7,8 @@
   --text-primary: #ececec;
   --text-secondary: #c5c5c5;
   --text-tertiary: #9a9a9a;
-  --accent-primary: #10a37f;
-  --accent-hover: #0d8c6e;
+  --accent-primary: #6a8811;
+  --accent-hover: #578a0d;
   --border-color: #4d4d4f;
   --input-bg: #40414f;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -159,12 +159,12 @@
 }
 
 .message.user .message-avatar {
-  background: linear-gradient(135deg, #5436da 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #6a8811 0%, #578a0d 100%);
   color: white;
 }
 
 .message.assistant .message-avatar {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, #0d9668 100%);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, #578a0d 100%);
   color: white;
 }
 
@@ -186,7 +186,7 @@
 }
 
 .message.user .message-content-1 {
-  background: linear-gradient(135deg, #5436da 0%, #6d28d9 100%);
+  background: linear-gradient(135deg, #6a8811 0%, #578a0d 100%);
   color: white;
   border-bottom-right-radius: 4px;
 }

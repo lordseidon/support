@@ -44,8 +44,8 @@ const AdminLogin = () => {
 
   if (isAuthenticated) {
     return (
-      <div className="admin-container">
-        <button className="logout-btn" onClick={handleLogout}>
+      <div className="admin-authenticated-container">
+        <button className="admin-logout-btn" onClick={handleLogout}>
           🚪 Logout
         </button>
         <AllChats />
@@ -54,16 +54,16 @@ const AdminLogin = () => {
   }
 
   return (
-    <div className="login-container">
-      <div className="login-box">
-        <div className="login-header">
-          <div className="lock-icon">🔒</div>
+    <div className="admin-login-wrapper">
+      <div className="admin-login-card">
+        <div className="admin-login-header">
+          <div className="admin-lock-icon">🔒</div>
           <h1>Admin Access</h1>
           <p>Enter your credentials to view all conversations</p>
         </div>
 
-        <form onSubmit={handleLogin} className="login-form">
-          <div className="form-group">
+        <form onSubmit={handleLogin} className="admin-login-form">
+          <div className="admin-input-group">
             <label htmlFor="username">Username</label>
             <input
               type="text"
@@ -76,7 +76,7 @@ const AdminLogin = () => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="admin-input-group">
             <label htmlFor="password">Password</label>
             <input
               type="password"
@@ -90,17 +90,17 @@ const AdminLogin = () => {
           </div>
 
           {error && (
-            <div className="error-message">
+            <div className="admin-error-alert">
               ⚠️ {error}
             </div>
           )}
 
-          <button type="submit" className="login-btn" disabled={loading}>
+          <button type="submit" className="admin-submit-btn" disabled={loading}>
             {loading ? 'Authenticating...' : '🔓 Login'}
           </button>
         </form>
 
-        <div className="login-footer">
+        <div className="admin-login-footer">
           <p>Authorized personnel only</p>
         </div>
       </div>

@@ -317,12 +317,8 @@ const ChatBot = ({ isWidget = false }) => {
       <div className="chatbot-header">
         <div className="chatbot-header-inner">
           <h1>
-            <span className="chatbot-icon">AI</span>
-            Assistant
+            Adamanti Assistant Service
           </h1>
-          <p className="chatbot-subtitle">
-            {isDemoMode ? 'Demo Mode' : 'Powered by Gemini AI'}
-          </p>
         </div>
       </div>
 
@@ -351,18 +347,9 @@ const ChatBot = ({ isWidget = false }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1rem', color: '#2c3e50' }}
             >
-              ✨ Ready to Transform Your Smile? ✨
+              Parlami del tuo sorriso
             </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              style={{ fontSize: '1.2rem', color: '#7f8c8d' }}
-            >
-              Tell me what you'd like to improve and I'll help you discover your perfect smile! 😊
-            </motion.p>
           </div>
         ) : (
           <AnimatePresence>

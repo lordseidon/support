@@ -372,15 +372,25 @@ const ChatBot = ({ isWidget = false }) => {
                     <img src={favImage} alt="AI Avatar" className="avatar-image" />
                   )}
                 </div>
-                <div className="message-content-1">
-                  {message.isStreaming && message.text === '' ? (
-                    <div className="typing-indicator">
-                      <div className="typing-dot"></div>
-                      <div className="typing-dot"></div>
-                      <div className="typing-dot"></div>
+                <div className="message-content-wrapper">
+                  <div className="message-content-1">
+                    {message.isStreaming && message.text === '' ? (
+                      <div className="typing-indicator">
+                        <div className="typing-dot"></div>
+                        <div className="typing-dot"></div>
+                        <div className="typing-dot"></div>
+                      </div>
+                    ) : (
+                      <ReactMarkdown>{message.text}</ReactMarkdown>
+                    )}
+                  </div>
+                  {message.isUser && message.timestamp && (
+                    <div className="message-timestamp">
+                      {new Date(message.timestamp).toLocaleTimeString('it-IT', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
                     </div>
-                  ) : (
-                    <ReactMarkdown>{message.text}</ReactMarkdown>
                   )}
                 </div>
               </motion.div>

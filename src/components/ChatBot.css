@@ -11,7 +11,7 @@
   --accent-hover: #578a0d;
   --border-color: #4d4d4f;
   --input-bg: #40414f;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 3px rgba(249, 249, 249, 0.5);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -166,11 +166,20 @@
 .message.assistant .message-avatar {
   background: linear-gradient(135deg, #698680 0%, #698680 100%);
   color: white;
+  padding: 1px;
 }
 
 .message-avatar svg {
   width: 16px;
   height: 16px;
+}
+
+.message-avatar .avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  /* padding: 0.5rem; */
 }
 
 /* Message Content - Bubble Style */
@@ -182,13 +191,13 @@
   font-size: 15px;
   max-width: 100%;
   position: relative;
-  box-shadow: var(--shadow-sm);
 }
 
 .message.user .message-content-1 {
   background: linear-gradient(135deg, #698680 0%, #698680 100%);
   color: white;
   border-bottom-right-radius: 4px;
+  box-shadow: var(--shadow-sm);
 }
 
 .message.assistant .message-content-1 {

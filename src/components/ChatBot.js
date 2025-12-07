@@ -378,8 +378,7 @@ const ChatBot = ({ isWidget = false }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              Parlami del tuo sorriso
-            </motion.h1>
+              Chiedimi tutto quello che vuoi sul tuo sorriso            </motion.h1>
           </div>
         ) : (
           <AnimatePresence>
@@ -411,7 +410,7 @@ const ChatBot = ({ isWidget = false }) => {
                       ))}
                     </div>
                   )}
-                  {message.text && (
+                  {(message.text || message.isStreaming) && (
                     <div className="message-content-1">
                       {message.isStreaming && message.text === '' ? (
                         <div className="typing-indicator">

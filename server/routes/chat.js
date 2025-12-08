@@ -6,6 +6,7 @@ const path = require('path');
 const Conversation = require('../models/Conversation');
 const User = require('../models/User');
 const telegramService = require('../services/telegramService');
+const { shouldShowImages } = require('../services/geminiDecisionService');
 
 // Read system prompt from markdown file
 const SYSTEM_PROMPT_PATH = path.join(__dirname, '..', 'system_prompt.md');
@@ -89,6 +90,11 @@ router.post('/message', async (req, res) => {
         timestamp: new Date().toLocaleString()
       }).catch(err => console.error('Error sending Telegram notification:', err));
     }
+
+    // Check if images should be shown using Gemini
+    console.log('🤔 Checking if images should be shown...');
+    const showImages = await shouldShowImages(message);
+    console.log(`📸 Show images: ${showImages}`);
 
     // Generate response
     console.log(`💬 Processing message: ${message.substring(0, 50)}...`);
@@ -186,12 +192,34 @@ router.post('/message', async (req, res) => {
       }
     }
 
+    // Prepare image list if needed - send only 3 random images
+    let images = [];
+    if (showImages) {
+      const imageDir = path.join(__dirname, '..', '..', 'src', 'img', 'Before & After');
+      if (fs.existsSync(imageDir)) {
+        const allFiles = fs.readdirSync(imageDir)
+          .filter(file => file.match(/\.(jpg|jpeg|png|gif)$/i));
+        
+        // Fisher-Yates shuffle for proper randomization
+        const shuffled = [...allFiles];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        
+        images = shuffled.slice(0, 3).map(file => `/img/Before & After/${file}`);
+        console.log(`📸 Selected ${images.length} images:`, images.map(p => p.split('/').pop()));
+      }
+    }
+
     res.json({
       success: true,
       text,
       userDetails: extractedDetails,
       conversationId: conversation?._id,
-      userId: savedUser?._id
+      userId: savedUser?._id,
+      showImages,
+      images
     });
 
   } catch (error) {
@@ -263,11 +291,17 @@ router.post('/stream', async (req, res) => {
       }).catch(err => console.error('Error sending Telegram notification:', err));
     }
 
+    // Check if images should be shown using Gemini
+    console.log('🤔 Checking if images should be shown...');
+    const showImages = await shouldShowImages(message);
+    console.log(`📸 Show images: ${showImages}`);
+
     console.log(`💬 Streaming message: ${message.substring(0, 50)}...`);
     const stream = await openai.chat.completions.create({
-      model: 'gpt-5',
+      model: 'gpt-4-turbo-preview',
       messages: messages,
-      max_completion_tokens: 2048,
+      temperature: 0.7,
+      max_tokens: 2048,
       stream: true
     });
     
@@ -283,8 +317,28 @@ router.post('/stream', async (req, res) => {
       }
     }
 
-    // Send completion signal
-    res.write(`data: ${JSON.stringify({ done: true, fullText })}\n\n`);
+    // Prepare image list if needed - send only 3 random images
+    let images = [];
+    if (showImages) {
+      const imageDir = path.join(__dirname, '..', '..', 'src', 'img', 'Before & After');
+      if (fs.existsSync(imageDir)) {
+        const allFiles = fs.readdirSync(imageDir)
+          .filter(file => file.match(/\.(jpg|jpeg|png|gif)$/i));
+        
+        // Fisher-Yates shuffle for proper randomization
+        const shuffled = [...allFiles];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        
+        images = shuffled.slice(0, 3).map(file => `/img/Before & After/${file}`);
+        console.log(`📸 Selected ${images.length} images:`, images.map(p => p.split('/').pop()));
+      }
+    }
+
+    // Send completion signal with images
+    res.write(`data: ${JSON.stringify({ done: true, fullText, showImages, images })}\n\n`);
     
     console.log(`✅ Streaming complete: ${fullText.substring(0, 50)}...`);
 

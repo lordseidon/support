@@ -105,6 +105,7 @@ export const streamResponse = async (message, conversationHistory = [], onChunk,
     const decoder = new TextDecoder();
     let fullText = '';
     let buffer = '';
+    let responseData = { showImages: false, images: [] };
 
     while (true) {
       const { done, value } = await reader.read();
@@ -126,7 +127,9 @@ export const streamResponse = async (message, conversationHistory = [], onChunk,
             
             if (data.done) {
               fullText = data.fullText;
-              console.log('✅ Streaming complete');
+              responseData.showImages = data.showImages || false;
+              responseData.images = data.images || [];
+              console.log('✅ Streaming complete. Show images:', responseData.showImages);
             } else if (data.chunk) {
               // Split chunk into words for smooth streaming
               const words = data.chunk.split(/(\s+)/);
@@ -147,7 +150,9 @@ export const streamResponse = async (message, conversationHistory = [], onChunk,
 
     return {
       success: true,
-      text: fullText
+      text: fullText,
+      showImages: responseData.showImages,
+      images: responseData.images
     };
   } catch (error) {
     console.error('❌ Error streaming response:', error);

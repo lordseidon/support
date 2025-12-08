@@ -12,8 +12,38 @@ import img03 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adama
 import img04 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_04.jpg';
 import img05 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_05.jpg';
 import img06 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_06.jpg';
+import img07 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_07.jpg';
+import img08 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_08.jpg';
+import img09 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_09.jpg';
+import img10 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_10.jpg';
+import img11 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_11.jpg';
+import img12 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_12.jpg';
+import img13 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_13.jpg';
+import img14 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_14.jpg';
+import img15 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_15.jpg';
+import img16 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_16.jpg';
+import img17 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_17.jpg';
+import img18 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_18.jpg';
+import img19 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_19.jpg';
+import img20 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_20.jpg';
+import img21 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_21.jpg';
+import img22 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_22.jpg';
+import img23 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_23.jpg';
+import img24 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_24.jpg';
+import img25 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_25.jpg';
+import img26 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_26.jpg';
+import img27 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_27.jpg';
+import img28 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_28.jpg';
+import img29 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_29.jpg';
+import img30 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_30.jpg';
+import img31 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_31.jpg';
+import img32 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_32.jpg';
+import img33 from '../img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_33.jpg';
 
-const beforeAfterImages = [img01, img02, img03, img04, img05, img06];
+const beforeAfterImages = [img01, img02, img03, img04, img05, img06, img07, img08, img09, img10, 
+  img11, img12, img13, img14, img15, img16, img17, img18, img19, img20,
+  img21, img22, img23, img24, img25, img26, img27, img28, img29, img30,
+  img31, img32, img33];
 
 // Demo responses for when API is not configured
 const getDemoResponse = (userMessage) => {
@@ -281,29 +311,82 @@ const ChatBot = ({ isWidget = false }) => {
 
       if (result.success) {
         console.log('✅ SUCCESS! Final response:', result.text.substring(0, 100));
+        console.log('📸 Should show images:', result.showImages);
+        console.log('🖼️ Images count:', result.images?.length || 0);
         
-        // Mark streaming as complete
-        setMessages(prev =>
-          prev.map(msg =>
+        // Mark streaming as complete and add images in one state update
+        setMessages(prev => {
+          const updatedMessages = prev.map(msg =>
             msg.id === assistantMessageId
               ? { ...msg, text: result.text, isStreaming: false }
               : msg
-          )
-        );
-
-        // Send images for inquiry or when requested
-        if (shouldShowImages || requestingImages) {
-          setTimeout(() => {
-            const imageMessage = {
-              id: Date.now() + 2,
-              text: '',
-              isUser: false,
-              timestamp: new Date(),
-              images: beforeAfterImages.slice(0, 3)
+          );
+          
+          // Add images if Gemini decided they should be shown
+          if (result.showImages && result.images && result.images.length > 0) {
+            console.log('🔍 Received image paths from backend:', result.images);
+            
+            // Map image paths to the imported images
+            const imageMap = {
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_01.jpg': img01,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_02.jpg': img02,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_03.jpg': img03,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_04.jpg': img04,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_05.jpg': img05,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_06.jpg': img06,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_07.jpg': img07,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_08.jpg': img08,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_09.jpg': img09,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_10.jpg': img10,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_11.jpg': img11,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_12.jpg': img12,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_13.jpg': img13,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_14.jpg': img14,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_15.jpg': img15,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_16.jpg': img16,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_17.jpg': img17,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_18.jpg': img18,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_19.jpg': img19,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_20.jpg': img20,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_21.jpg': img21,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_22.jpg': img22,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_23.jpg': img23,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_24.jpg': img24,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_25.jpg': img25,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_26.jpg': img26,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_27.jpg': img27,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_28.jpg': img28,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_29.jpg': img29,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_30.jpg': img30,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_31.jpg': img31,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_32.jpg': img32,
+              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_33.jpg': img33,
             };
-            setMessages(prev => [...prev, imageMessage]);
-          }, 500);
-        }
+            
+            const displayImages = result.images
+              .map(path => {
+                const img = imageMap[path];
+                if (!img) console.warn('⚠️ Image not found in map:', path);
+                return img;
+              })
+              .filter(Boolean);
+            
+            console.log('✅ Mapped to', displayImages.length, 'image imports');
+            
+            if (displayImages.length > 0) {
+              updatedMessages.push({
+                id: Date.now() + 2,
+                text: '',
+                isUser: false,
+                timestamp: new Date(),
+                images: displayImages
+              });
+              console.log('✅ Added image message with', displayImages.length, 'images');
+            }
+          }
+          
+          return updatedMessages;
+        });
       } else {
         console.log('❌ FAILED! Error:', result.error);
         throw new Error(result.error || 'Failed to get response');

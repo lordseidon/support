@@ -12,6 +12,15 @@ const messageSchema = new mongoose.Schema({
   timestamp: {
     type: Date,
     default: Date.now
+  },
+  images: {
+    type: [String],
+    default: []
+  },
+  messageType: {
+    type: String,
+    enum: ['text', 'image', 'text-with-images'],
+    default: 'text'
   }
 });
 
@@ -47,11 +56,14 @@ conversationSchema.index({ createdAt: -1 });
 conversationSchema.index({ status: 1 });
 
 // Method to add a message to the conversation
-conversationSchema.methods.addMessage = function(text, isUser) {
+conversationSchema.methods.addMessage = function(text, isUser, images = []) {
+  const messageType = images.length > 0 ? (text ? 'text-with-images' : 'image') : 'text';
   this.messages.push({
     text,
     isUser,
-    timestamp: new Date()
+    timestamp: new Date(),
+    images,
+    messageType
   });
   return this.save();
 };

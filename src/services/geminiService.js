@@ -127,9 +127,8 @@ export const streamResponse = async (message, conversationHistory = [], onChunk,
             
             if (data.done) {
               fullText = data.fullText;
-              responseData.showImages = data.showImages || false;
               responseData.images = data.images || [];
-              console.log('✅ Streaming complete. Show images:', responseData.showImages);
+              console.log('✅ Streaming complete. Images received:', JSON.stringify(responseData.images));
             } else if (data.chunk) {
               // Split chunk into words for smooth streaming
               const words = data.chunk.split(/(\s+)/);
@@ -151,7 +150,6 @@ export const streamResponse = async (message, conversationHistory = [], onChunk,
     return {
       success: true,
       text: fullText,
-      showImages: responseData.showImages,
       images: responseData.images
     };
   } catch (error) {

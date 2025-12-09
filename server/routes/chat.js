@@ -130,7 +130,7 @@ router.post('/message', async (req, res) => {
 
       // Add messages to conversation
       await conversation.addMessage(message, true); // User message
-      await conversation.addMessage(text, false); // AI response
+      await conversation.addMessage(text, false, images); // AI response with images
 
       // If user details were extracted, save them
       if (extractedDetails) {
@@ -218,7 +218,6 @@ router.post('/message', async (req, res) => {
       userDetails: extractedDetails,
       conversationId: conversation?._id,
       userId: savedUser?._id,
-      showImages,
       images
     });
 
@@ -319,11 +318,16 @@ router.post('/stream', async (req, res) => {
 
     // Prepare image list if needed - send only 3 random images
     let images = [];
+    console.log(`🔍 About to prepare images. showImages = ${showImages}`);
     if (showImages) {
       const imageDir = path.join(__dirname, '..', '..', 'src', 'img', 'Before & After');
+      console.log(`📁 Image directory: ${imageDir}`);
+      console.log(`📁 Directory exists: ${fs.existsSync(imageDir)}`);
+      
       if (fs.existsSync(imageDir)) {
         const allFiles = fs.readdirSync(imageDir)
           .filter(file => file.match(/\.(jpg|jpeg|png|gif)$/i));
+        console.log(`📂 Found ${allFiles.length} image files`);
         
         // Fisher-Yates shuffle for proper randomization
         const shuffled = [...allFiles];
@@ -333,14 +337,17 @@ router.post('/stream', async (req, res) => {
         }
         
         images = shuffled.slice(0, 3).map(file => `/img/Before & After/${file}`);
-        console.log(`📸 Selected ${images.length} images:`, images.map(p => p.split('/').pop()));
+        console.log(`📸 Selected ${images.length} images:`, images);
       }
     }
 
     // Send completion signal with images
-    res.write(`data: ${JSON.stringify({ done: true, fullText, showImages, images })}\n\n`);
+    const completionData = { done: true, fullText, images };
+    console.log(`📤 Sending completion with ${images.length} images:`, completionData);
+    res.write(`data: ${JSON.stringify(completionData)}\n\n`);
     
     console.log(`✅ Streaming complete: ${fullText.substring(0, 50)}...`);
+    console.log(`✅ Images in completion:`, images);
 
     // Save to database if sessionId provided
     if (sessionId) {
@@ -355,7 +362,7 @@ router.post('/stream', async (req, res) => {
       }
 
       await conversation.addMessage(message, true);
-      await conversation.addMessage(fullText, false);
+      await conversation.addMessage(fullText, false, images);
 
       // Extract and save user details
       const extractedDetails = extractUserDetails(message, fullText);

@@ -45,6 +45,48 @@ const beforeAfterImages = [img01, img02, img03, img04, img05, img06, img07, img0
   img21, img22, img23, img24, img25, img26, img27, img28, img29, img30,
   img31, img32, img33];
 
+// Helper function to map image paths to imported images
+const IMAGE_MAP = {
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_01.jpg': img01,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_02.jpg': img02,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_03.jpg': img03,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_04.jpg': img04,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_05.jpg': img05,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_06.jpg': img06,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_07.jpg': img07,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_08.jpg': img08,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_09.jpg': img09,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_10.jpg': img10,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_11.jpg': img11,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_12.jpg': img12,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_13.jpg': img13,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_14.jpg': img14,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_15.jpg': img15,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_16.jpg': img16,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_17.jpg': img17,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_18.jpg': img18,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_19.jpg': img19,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_20.jpg': img20,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_21.jpg': img21,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_22.jpg': img22,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_23.jpg': img23,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_24.jpg': img24,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_25.jpg': img25,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_26.jpg': img26,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_27.jpg': img27,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_28.jpg': img28,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_29.jpg': img29,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_30.jpg': img30,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_31.jpg': img31,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_32.jpg': img32,
+  '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_33.jpg': img33,
+};
+
+const mapImagePathsToImports = (imagePaths) => {
+  if (!imagePaths || !Array.isArray(imagePaths)) return [];
+  return imagePaths.map(path => IMAGE_MAP[path]).filter(Boolean);
+};
+
 // Demo responses for when API is not configured
 const getDemoResponse = (userMessage) => {
   const msg = userMessage.toLowerCase();
@@ -194,7 +236,9 @@ const ChatBot = ({ isWidget = false }) => {
                 text: msg.text,
                 isUser: msg.isUser,
                 timestamp: new Date(msg.timestamp),
-                isStreaming: false
+                isStreaming: false,
+                images: msg.images || [], // Keep as paths
+                messageType: msg.messageType || 'text'
               }));
             
             setMessages(loadedMessages);
@@ -311,82 +355,32 @@ const ChatBot = ({ isWidget = false }) => {
 
       if (result.success) {
         console.log('✅ SUCCESS! Final response:', result.text.substring(0, 100));
-        console.log('📸 Should show images:', result.showImages);
-        console.log('🖼️ Images count:', result.images?.length || 0);
+        console.log('🖼️ Images received:', result.images);
         
-        // Mark streaming as complete and add images in one state update
-        setMessages(prev => {
-          const updatedMessages = prev.map(msg =>
+        // Update message with text completion
+        setMessages(prev =>
+          prev.map(msg =>
             msg.id === assistantMessageId
               ? { ...msg, text: result.text, isStreaming: false }
               : msg
+          )
+        );
+        
+        // If images are included, update again with images (keeps paths for DB compatibility)
+        if (result.images && result.images.length > 0) {
+          console.log('✅ Adding', result.images.length, 'images to message');
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === assistantMessageId
+                ? { 
+                    ...msg, 
+                    images: result.images, // Store paths directly
+                    messageType: 'text-with-images'
+                  }
+                : msg
+            )
           );
-          
-          // Add images if Gemini decided they should be shown
-          if (result.showImages && result.images && result.images.length > 0) {
-            console.log('🔍 Received image paths from backend:', result.images);
-            
-            // Map image paths to the imported images
-            const imageMap = {
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_01.jpg': img01,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_02.jpg': img02,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_03.jpg': img03,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_04.jpg': img04,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_05.jpg': img05,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_06.jpg': img06,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_07.jpg': img07,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_08.jpg': img08,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_09.jpg': img09,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_10.jpg': img10,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_11.jpg': img11,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_12.jpg': img12,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_13.jpg': img13,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_14.jpg': img14,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_15.jpg': img15,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_16.jpg': img16,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_17.jpg': img17,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_18.jpg': img18,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_19.jpg': img19,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_20.jpg': img20,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_21.jpg': img21,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_22.jpg': img22,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_23.jpg': img23,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_24.jpg': img24,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_25.jpg': img25,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_26.jpg': img26,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_27.jpg': img27,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_28.jpg': img28,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_29.jpg': img29,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_30.jpg': img30,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_31.jpg': img31,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_32.jpg': img32,
-              '/img/Before & After/250330_Prima e Dopo_Luca La Scala_Adamanti_Page_33.jpg': img33,
-            };
-            
-            const displayImages = result.images
-              .map(path => {
-                const img = imageMap[path];
-                if (!img) console.warn('⚠️ Image not found in map:', path);
-                return img;
-              })
-              .filter(Boolean);
-            
-            console.log('✅ Mapped to', displayImages.length, 'image imports');
-            
-            if (displayImages.length > 0) {
-              updatedMessages.push({
-                id: Date.now() + 2,
-                text: '',
-                isUser: false,
-                timestamp: new Date(),
-                images: displayImages
-              });
-              console.log('✅ Added image message with', displayImages.length, 'images');
-            }
-          }
-          
-          return updatedMessages;
-        });
+        }
       } else {
         console.log('❌ FAILED! Error:', result.error);
         throw new Error(result.error || 'Failed to get response');
@@ -486,11 +480,15 @@ const ChatBot = ({ isWidget = false }) => {
                 <div className="message-content-wrapper">
                   {message.images && message.images.length > 0 && (
                     <div className="message-images-grid">
-                      {message.images.map((img, idx) => (
-                        <div key={idx} className="message-image-card">
-                          <img src={img} alt={`Before/After ${idx + 1}`} className="message-image" />
-                        </div>
-                      ))}
+                      {message.images.map((imgPath, idx) => {
+                        // Map path to imported image on render
+                        const imgSrc = IMAGE_MAP[imgPath] || imgPath;
+                        return (
+                          <div key={idx} className="message-image-card">
+                            <img src={imgSrc} alt={`Before/After ${idx + 1}`} className="message-image" />
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                   {(message.text || message.isStreaming) && (

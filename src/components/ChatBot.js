@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { streamResponse } from '../services/geminiService';
@@ -121,16 +122,26 @@ const setCookie = (name, value, days = 365) => {
 };
 
 const ChatBot = ({ isWidget = false }) => {
+  const { sessionId: urlSessionId } = useParams();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState(() => {
+    // Priority: URL param > Cookie > New session
+    if (urlSessionId) {
+      console.log('📌 Using session from URL:', urlSessionId);
+      setCookie('chatbot_session_id', urlSessionId);
+      return urlSessionId;
+    }
+    
     // Try to get existing session from cookie
     const existingSession = getCookie('chatbot_session_id');
     if (existingSession) {
       console.log('📌 Found existing session in cookie:', existingSession);
       return existingSession;
     }
+    
     // Generate new session ID
     const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     setCookie('chatbot_session_id', newSessionId);
@@ -412,6 +423,15 @@ const ChatBot = ({ isWidget = false }) => {
     setInputValue(suggestion);
   };
 
+  const handleShareChat = () => {
+    const chatUrl = `${window.location.origin}/chat/${sessionId}`;
+    navigator.clipboard.writeText(chatUrl).then(() => {
+      alert('Link della chat copiato negli appunti!');
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+    });
+  };
+
   const suggestions = [
     "How can you help me?",
     "What are your capabilities?",
@@ -556,6 +576,18 @@ const ChatBot = ({ isWidget = false }) => {
         </div>
         </div>
       </div>
+
+      {messages.length > 0 && (
+        <button 
+          onClick={handleShareChat} 
+          className="share-chat-btn-floating"
+          title="Condividi chat"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+            <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+          </svg>
+        </button>
+      )}
     </div>
   );
 };

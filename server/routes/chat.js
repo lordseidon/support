@@ -87,7 +87,8 @@ router.post('/message', async (req, res) => {
         phone: detectedPhone,
         address: null,
         originalMessage: message,
-        timestamp: new Date().toLocaleString()
+        timestamp: new Date().toLocaleString(),
+        sessionId: sessionId
       }).catch(err => console.error('Error sending Telegram notification:', err));
     }
 
@@ -286,7 +287,8 @@ router.post('/stream', async (req, res) => {
         phone: detectedPhone,
         address: null,
         originalMessage: message,
-        timestamp: new Date().toLocaleString()
+        timestamp: new Date().toLocaleString(),
+        sessionId: sessionId
       }).catch(err => console.error('Error sending Telegram notification:', err));
     }
 

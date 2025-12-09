@@ -35,7 +35,7 @@ class TelegramService {
     }
 
     try {
-      const { name, phone, address, originalMessage, timestamp } = userDetails;
+      const { name, phone, address, originalMessage, timestamp, sessionId } = userDetails;
 
       // Format the message with escaped special characters for Markdown
       const escapedMessage = (originalMessage || '').replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
@@ -54,11 +54,17 @@ class TelegramService {
       
       message += `\n📝 *Original Message:*\n${escapedMessage.substring(0, 200)}\n`;
       message += `\n🕐 *Time:* ${timestamp || new Date().toLocaleString()}`;
+      
+      // Add chat link if sessionId is provided
+      if (sessionId) {
+        const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+        message += `\n\n🔗 [View Chat](${clientUrl}/chat/${sessionId})`;
+      }
 
       // Send message with timeout to prevent hanging
       const sendPromise = this.bot.sendMessage(this.chatId, message, {
         parse_mode: 'Markdown',
-        disable_web_page_preview: true,
+        disable_web_page_preview: false,
         disable_notification: false
       });
 

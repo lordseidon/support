@@ -13,6 +13,7 @@ function App() {
       <div className="App">
         <Routes>
           <Route path="/" element={<ChatBot />} />
+          <Route path="/chat/:sessionId" element={<ChatBot />} />
           <Route path="/user-info" element={<UserInfoPage />} />
           <Route path="/all-chats" element={<AllChats />} />
           <Route path="/admin" element={<AdminLogin />} />

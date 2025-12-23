@@ -4,6 +4,7 @@ import ChatBot from './components/ChatBot';
 import UserInfoPage from './pages/UserInfoPage';
 import AllChats from './pages/AllChats';
 import SystemPromptEditor from './pages/SystemPromptEditor';
+import ImagePromptEditor from './pages/ImagePromptEditor';
 import AdminLogin from './components/AdminLogin';
 import './App.css';
 
@@ -18,6 +19,7 @@ function App() {
           <Route path="/all-chats" element={<AllChats />} />
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/system-prompt" element={<SystemPromptEditor />} />
+          <Route path="/image-prompt" element={<ImagePromptEditor />} />
         </Routes>
       </div>
     </Router>

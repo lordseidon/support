@@ -340,11 +340,12 @@ const ChatBot = ({ isWidget = false }) => {
     setMessages(prev => [...prev, assistantMessage]);
 
     try {
-      // Get conversation history for context
-      const conversationHistory = messages.slice(-10);
+      // Get conversation history for context - use all messages for full context
+      const conversationHistory = messages;
 
       // Stream response from Gemini
       console.log('📤 Streaming to Gemini:', currentInput);
+      console.log('📚 Context: Using', conversationHistory.length, 'previous messages');
       
       const result = await streamResponse(
         currentInput,

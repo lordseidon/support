@@ -1,22 +1,23 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const fs = require('fs');
+const path = require('path');
 
 // Initialize Gemini AI with API key
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-/**
- * Uses Gemini Flash (fast model) to determine if the user's message
- * would benefit from seeing before/after dental images
- * @param {string} userMessage - The user's message
- * @returns {Promise<boolean>} - true if images should be shown, false otherwise
- */
-async function shouldShowImages(userMessage) {
+// Load image prompt from file
+function loadImagePrompt() {
   try {
-    // Use Gemini 2.0 Flash for fast decision-making
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    const promptPath = path.join(__dirname, '..', 'image_prompt.md');
+    const prompt = fs.readFileSync(promptPath, 'utf8');
+    console.log('✅ Image prompt loaded successfully');
+    return prompt;
+  } catch (error) {
+    console.error('❌ Error loading image prompt:', error);
+    // Fallback to default prompt
+    return `You are a dental assistant AI. Analyze if the following user message would benefit from seeing before/after dental treatment images.
 
-    const prompt = `You are a dental assistant AI. Analyze if the following user message would benefit from seeing before/after dental treatment images.
-
-User message: "${userMessage}"
+User message: "{userMessage}"
 
 Context: We have before/after photos showing dental transformations including veneers, implants, teeth whitening, smile makeovers, and various cosmetic dental procedures.
 
@@ -37,6 +38,25 @@ Respond with ONLY "no" if the user is:
 - Making general inquiries that don't relate to visual outcomes
 
 Response (only "yes" or "no"):`;
+  }
+}
+
+/**
+ * Uses Gemini Flash (fast model) to determine if the user's message
+ * would benefit from seeing before/after dental images
+ * @param {string} userMessage - The user's message
+ * @returns {Promise<boolean>} - true if images should be shown, false otherwise
+ */
+async function shouldShowImages(userMessage) {
+  try {
+    // Load the latest prompt from file each time
+    const imagePrompt = loadImagePrompt();
+    
+    // Use Gemini 2.0 Flash for fast decision-making
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+
+    // Replace {userMessage} placeholder with actual message
+    const prompt = imagePrompt.replace('{userMessage}', userMessage);
 
     const result = await model.generateContent(prompt);
     const response = await result.response;

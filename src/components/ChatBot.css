@@ -67,6 +67,7 @@
   z-index: 1000;
   width: 56px;
   height: 56px;
+  display: none;
 }
 
 .share-chat-btn-floating:hover {

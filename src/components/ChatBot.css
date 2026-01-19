@@ -32,7 +32,8 @@
 /* Header - ChatGPT Style */
 .chatbot-header {
   background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
+  /* border-bottom: 1px solid var(--border-color); */
+  border-bottom: 0;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -367,7 +368,8 @@
 .input-container {
   background: #698680;
   padding: 0 0 2rem 0;
-  border-top: 1px solid var(--border-color);
+  /* border-top: 0; 1px solid var(--border-color); */
+  border: 0;
 }
 
 .input-container-inner {

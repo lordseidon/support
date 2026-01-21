@@ -325,6 +325,7 @@
 }
 
 .message-avatar {
+  display: none;
   font-size: 2rem;
   flex-shrink: 0;
 }

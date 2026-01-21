@@ -128,7 +128,7 @@
 .messages-wrapper {
   max-width: 900px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 2rem 0.5rem;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -174,12 +174,16 @@
 }
 
 .message.user {
-  margin-left: auto;
+  margin-left: 18%;
   flex-direction: row-reverse;
+  width: 80%;
 }
 
 .message.assistant {
   margin-right: auto;
+  box-shadow: none;
+  text-align: left;
+  padding: 0;
 }
 
 /* Avatar */
@@ -232,6 +236,7 @@
   color: rgba(255, 255, 255, 0.6);
   padding: 0 4px;
   align-self: flex-end;
+  display: none;
 }
 
 .message.assistant .message-timestamp {
@@ -251,14 +256,15 @@
 }
 
 .message.user .message-content-1 {
-  background: #fff;
-  color: #000;
+  /* background: #fff; */
+  color: #fff;
   border-bottom-right-radius: 4px;
 }
 
 .message.assistant .message-content-1 {
   /* background: var(--bg-secondary); */
   color: var(--text-primary);
+  padding: 0;
   /* border: 1px solid var(--border-color); */
   border-bottom-left-radius: 1px;
 }
@@ -269,7 +275,7 @@
 }
 
 .message.user .message-content-1 p {
-  color: #698680;
+  /* color: #698680; */
 }
 
 .message.assistant .message-content-1 p {

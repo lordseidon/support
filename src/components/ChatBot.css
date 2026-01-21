@@ -176,7 +176,8 @@
 .message.user {
   margin-left: 18%;
   flex-direction: row-reverse;
-  width: 80%;
+  max-width: 80%;
+  /* width: fit-content; */
 }
 
 .message.assistant {
@@ -223,6 +224,17 @@
 }
 
 /* Message Content Wrapper */
+
+.message.user .message-content-wrapper {
+  display: flex;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  padding: 0 0 0 1rem;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 100%;
+}
+
 .message-content-wrapper {
   display: flex;
   flex-direction: column;
